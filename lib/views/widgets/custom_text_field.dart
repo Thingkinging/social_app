@@ -11,10 +11,9 @@ class CustomTextField extends StatelessWidget {
   final VoidCallback? submitAction;
   final bool obscureText;
   final FormFieldValidator<String>? validateFunction;
-  final void Function(String?)? onSaved, onChanged;
+  final void Function(String?)? onSaved, onChange;
 
   CustomTextField({
-    super.key,
     this.initialValue,
     this.enabled,
     this.hintText,
@@ -27,7 +26,8 @@ class CustomTextField extends StatelessWidget {
     this.obscureText = false,
     this.validateFunction,
     this.onSaved,
-    this.onChanged,
+    this.onChange,
+    super.key,
   });
 
   @override
@@ -37,8 +37,10 @@ class CustomTextField extends StatelessWidget {
       child: TextFormField(
         initialValue: initialValue,
         enabled: enabled,
-        onChanged: onChanged,
-        style: TextStyle(fontSize: 15.0),
+        onChanged: onChange,
+        style: TextStyle(
+          fontSize: 15.0,
+        ),
         key: key,
         controller: controller,
         obscureText: obscureText,
@@ -52,19 +54,18 @@ class CustomTextField extends StatelessWidget {
             focusNode!.unfocus();
             FocusScope.of(context).requestFocus(nextFocusNode);
           } else {
-            submitAction;
+            submitAction!();
           }
         },
         decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TextStyle(
-            color: Colors.grey[400],
-          ),
-          contentPadding: EdgeInsets.symmetric(horizontal: 20),
-          border: border(),
-          focusedBorder: border(),
-          disabledBorder: border(),
-        ),
+            hintText: hintText,
+            hintStyle: TextStyle(
+              color: Colors.grey[400],
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+            border: border(),
+            focusedBorder: border(),
+            disabledBorder: border()),
       ),
     );
   }

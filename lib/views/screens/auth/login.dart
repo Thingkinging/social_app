@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:social_app/util/const.dart';
 import 'package:social_app/util/extensions.dart';
+import 'package:social_app/util/router.dart';
+import 'package:social_app/views/widgets/custom_button.dart';
+import 'package:social_app/views/widgets/custom_text_field.dart';
 
 import '../../../util/animations.dart';
 import '../../../util/enum.dart';
+import '../../../util/validations.dart';
+import '../main_screen.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -24,6 +29,12 @@ class _LoginState extends State<Login> {
   FocusNode emailFN = FocusNode();
   FocusNode passFN = FocusNode();
   FormMode formMode = FormMode.LOGIN;
+
+  login() async {
+    FormState form = formKey.currentState!;
+    form.save();
+    Navigate.pushPageReplacement(context, MainScreen());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,77 +82,81 @@ class _LoginState extends State<Login> {
   }
 
   buildFormContainer() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Text(
-          '${Constants.appName}',
-          style: TextStyle(
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            '${Constants.appName}',
+            style: TextStyle(
+              fontSize: 40.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ).fadeInList(0, false),
+          SizedBox(height: 70.0),
+          Form(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            key: formKey,
+            child: buildForm(),
           ),
-        ).fadeInList(0, false),
-        SizedBox(height: 70),
-        Form(
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          key: formKey,
-          child: buildForm(),
-        ),
-        Visibility(
-          visible: formMode == FormMode.LOGIN,
-          child: Column(
-            children: [
-              SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
+          Visibility(
+            visible: formMode == FormMode.LOGIN,
+            child: Column(
+              children: [
+                SizedBox(height: 10.0),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      formMode = FormMode.FORGOT_PASSWORD;
+                      setState(() {});
+                    },
+                    child: Text('Forgot Password?'),
+                  ),
+                ),
+              ],
+            ),
+          ).fadeInList(3, false),
+          SizedBox(height: 20.0),
+          buildButton(),
+          Visibility(
+            visible: formMode == FormMode.LOGIN,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Don\'t have an account?'),
+                TextButton(
                   onPressed: () {
-                    formMode = FormMode.FORGOT_PASSWORD;
+                    formMode = FormMode.REGISTER;
                     setState(() {});
                   },
-                  child: Text('Forgot Password?'),
+                  child: Text('Register'),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ).fadeInList(5, false),
+          Visibility(
+            visible: formMode != FormMode.LOGIN,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Already have an account?'),
+                TextButton(
+                  onPressed: () {
+                    formMode = FormMode.LOGIN;
+                    setState(() {});
+                  },
+                  child: Text('Login'),
+                ),
+              ],
+            ),
           ),
-        ).fadeInList(3, false),
-        SizedBox(height: 20),
-        buildButton(),
-        Visibility(
-          visible: formMode == FormMode.LOGIN,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Don\'t have an account?'),
-              TextButton(
-                onPressed: () {
-                  formMode = FormMode.REGISTER;
-                  setState(() {});
-                },
-                child: Text('Register'),
-              ),
-            ],
-          ),
-        ).fadeInList(5, false),
-        Visibility(
-          visible: formMode != FormMode.LOGIN,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Already have an account?'),
-              TextButton(
-                onPressed: () {
-                  formMode == FormMode.LOGIN;
-                  setState(() {});
-                },
-                child: Text('Login'),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -153,15 +168,63 @@ class _LoginState extends State<Login> {
           visible: formMode == FormMode.REGISTER,
           child: Column(
             children: [
-              CustomTextField
+              CustomTextField(
+                enabled: !loading,
+                hintText: "Name",
+                textInputAction: TextInputAction.next,
+                validateFunction: Validations.validateName,
+                onSaved: (String? val) {
+                  name = val ?? '';
+                },
+                focusNode: nameFN,
+                nextFocusNode: emailFN,
+              ),
+              SizedBox(height: 20.0),
             ],
           ),
         ),
+        CustomTextField(
+          enabled: !loading,
+          hintText: "Email",
+          textInputAction: TextInputAction.next,
+          validateFunction: Validations.validateEmail,
+          onSaved: (String? val) {
+            email = val ?? '';
+          },
+          focusNode: emailFN,
+          nextFocusNode: passFN,
+        ).fadeInList(1, false),
+        Visibility(
+          visible: formMode != FormMode.FORGOT_PASSWORD,
+          child: Column(
+            children: [
+              SizedBox(height: 20.0),
+              CustomTextField(
+                enabled: !loading,
+                hintText: "Password",
+                textInputAction: TextInputAction.done,
+                validateFunction: Validations.validatePassword,
+                submitAction: login,
+                obscureText: true,
+                onSaved: (String? val) {
+                  password = val ?? '';
+                },
+                focusNode: passFN,
+              ),
+            ],
+          ),
+        ).fadeInList(2, false),
       ],
     );
   }
 
   buildButton() {
-    return Column();
+    return loading
+        ? Center(child: CircularProgressIndicator())
+        : CustomButton(
+      label: "Submit",
+      onPressed: () => login(),
+    ).fadeInList(4, false);
   }
 }
+
